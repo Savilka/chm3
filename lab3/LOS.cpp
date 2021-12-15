@@ -1,9 +1,8 @@
 #include "LOS.h"
 
 void LOS::r0() {
-   matMul(x);
    real* Ax = new real[N];
-   copyVec(Ax, res, N);
+   matMul(x, Ax);
    for (int i = 0; i < N; i++)
    {
       r[i] = pr[i] - Ax[i];
@@ -35,10 +34,8 @@ void LOS::zk() {
    }
 }
 
-void LOS::pk() {
-   matMul(r);
-   real* Ak = new real[N];
-   copyVec(Ak, res, N);
+void LOS::pk(real* Ak) {
+   
    for (int i = 0; i < N; i++){
       p[i] = Ak[i] + beta * p[i];
    }
@@ -56,15 +53,11 @@ void LOS::calcAlpha() {
    alpha = scalar(p, r, N) / scalar(p, p, N);
 }
 
-void LOS::calcBeta() {
-   matMul(r);
-   beta = scalar(p, res, N) / scalar(p, p, N);
+void LOS::calcBeta(real* Ar) {
+   beta = scalar(p, Ar, N) / scalar(p, p, N);
 }
 
-void LOS::matMul(real* vec) {
-   for (int i = 0; i < N; i++) {
-      res[i] = 0;
-   }
+void LOS::matMul(real* vec, real* res) {
    for (int i = 0; i < N; i++) {
       res[i] = di[i] * vec[i];
       for (int j = ig[i]; j < ig[i + 1]; j++) {
@@ -80,19 +73,26 @@ void LOS::copyVec(real* a, real* b, int size) {
    }
 }
 
+//M(-1)*vec, где M = di
+void LOS::vecDivD(real* res) {
+   for (int i = 0; i < N; i++) {
+      res[i] = res[i] / sqrt(di[i]);
+   }
+}
+
 void LOS::los() {
-   res = new real[N];
    x = new real[N];
    r = new real[N];
    p = new real[N];
    z = new real[N];
+   real* Ak = new real[N];
+   real* Ar = new real[N];
    for (int i = 0; i < N; i++) {
       x[i] = 0;
    }
    r0();
    copyVec(z, r, N);
-   matMul(z);
-   copyVec(p, res, N);
+   matMul(z, p);
    nev = scalar(r, r, N);
    for (int i = 0; i < maxiter && nev > eps; i++) {
       calcAlpha();
@@ -100,9 +100,40 @@ void LOS::los() {
       cout << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
       nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
       rk();
-      calcBeta();
+      matMul(r, Ar);
+      calcBeta(Ar);
       zk();
-      pk();
+      matMul(r, Ak);
+      pk(Ak);
+   }
+}
+
+void LOS::los_d() {
+   x = new real[N];
+   r = new real[N];
+   p = new real[N];
+   z = new real[N];
+   real* Ar = new real[N];
+   for (int i = 0; i < N; i++) {
+      x[i] = 0;
+   }
+   r0();
+   vecDivD(r);
+   copyVec(z, r, N);
+   matMul(z, p);
+   vecDivD(p);
+   nev = scalar(r, r, N);
+   for (int i = 0; i < maxiter && nev > eps; i++) {
+      calcAlpha();
+      xk();
+      cout << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
+      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
+      rk();
+      matMul(r, Ar);
+      vecDivD(Ar);
+      calcBeta(Ar);
+      zk();
+      pk(Ar);
    }
 }
 

@@ -18,7 +18,7 @@ int main() {
 
    LOS Los;
    Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
-   Los.los();
+   Los.los_d();
    Los.output(*output);
 
    return 0;
