@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -17,9 +18,12 @@ class LOS {
 public:
    void input(ifstream& kuslau, ifstream& ig, ifstream& jg, ifstream& ggl, ifstream& ggu, ifstream& di, ifstream& pr);
    void output(ofstream& output);
-   void los();
-   void los_d();
+   void los(ofstream& iteration);
+   void los_d(ofstream& iteration);
+   void los_LU(ofstream& iteration);
 private:
+   real LUdirect(real* y);
+   real LUreverse(real* res);
    void LU();
    void r0();
    void xk();
