@@ -54,7 +54,7 @@ void LOS::calcAlpha() {
 }
 
 void LOS::calcBeta(real* Ar) {
-   beta = scalar(p, Ar, N) / scalar(p, p, N);
+   beta = - scalar(p, Ar, N) / scalar(p, p, N);
 }
 
 void LOS::matMul(real* vec, real* res) {
@@ -76,7 +76,7 @@ void LOS::copyVec(real* a, real* b, int size) {
 
 void LOS::vecDivD(real* res) {
    for (int i = 0; i < N; i++) {
-      res[i] = res[i] / di[i];
+      res[i] = res[i] / sqrt(di[i]);
    }
 }
 
