@@ -10,7 +10,7 @@ typedef double real;
 class LOS {
    int N;
    int maxiter;
-   double eps, nev;
+   double eps, nev, nev_next;
    real* ggl, * ggu, * di, * pr, * L, * U, * D;
    int* ig, * jg;
    real* r, * z, * p, * x;

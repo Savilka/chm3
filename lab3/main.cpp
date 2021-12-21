@@ -24,23 +24,23 @@ int main() {
    Timer time;
    switch (a) {
    case 1:
-      Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
-      //cin >> n;
-      //Los.Gilbert(n);
+      //Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
+      cin >> n;
+      Los.Gilbert(n);
       Los.los(*iteration);
       Los.output(*output);
       break;
    case 2:
-      Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
-      //cin >> n;
-      //Los.Gilbert(n);
+     // Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
+      cin >> n;
+      Los.Gilbert(n);
       Los.los_d(*iteration);
       Los.output(*output);
       break;
    case 3:
       Los.input(*kuslau, *ig, *jg, *ggl, *ggu, *di, *pr);
-      //cin >> n;
-      //Los.Gilbert(n);
+      cin >> n;
+      Los.Gilbert(n);
       Los.los_LU(*iteration);
       Los.output(*output);
       break;

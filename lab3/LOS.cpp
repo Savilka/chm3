@@ -183,7 +183,7 @@ void LOS::Backward(real* vec, real* res) {
    copyVec(res, vec, N);
    for (int i = N - 1; i >= 0; i--) {
       for (int j = ig[i]; j < ig[i + 1]; j++)
-         res[jg[j]] -= U[jg[j]] * res[i];
+         res[jg[j]] -= U[j] * res[i];
    }
 }
 
@@ -192,6 +192,7 @@ void LOS::los(ofstream& iteration) {
    r = new real[N];
    p = new real[N];
    z = new real[N];
+   real diff = 1;
    real* Ak = new real[N];
    real* Ar = new real[N];
    for (int i = 0; i < N; i++) {
@@ -201,11 +202,13 @@ void LOS::los(ofstream& iteration) {
    copyVec(z, r, N);
    matMul(z, p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps; i++) {
+   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
       calcAlpha();
       xk();
+      diff = abs(nev - nev_next);
       iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
-      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
+      nev_next = nev;
+      nev -= alpha * alpha * scalar(p, p, N);
       rk();
       matMul(r, Ar);
       calcBeta(Ar);
@@ -220,6 +223,7 @@ void LOS::los_d(ofstream& iteration) {
    r = new real[N];
    p = new real[N];
    z = new real[N];
+   real diff = 1;
    real* Ar = new real[N];
    for (int i = 0; i < N; i++) {
       x[i] = 0;
@@ -230,11 +234,13 @@ void LOS::los_d(ofstream& iteration) {
    matMul(z, p);
    vecDivD(p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps; i++) {
+   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
       calcAlpha();
       xk();
+      diff = abs(nev - nev_next);
       iteration <<  "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
-      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
+      nev_next = nev;
+      nev -= alpha * alpha * scalar(p, p, N);
       rk();
       matMul(r, Ar);
       vecDivD(Ar);
@@ -255,6 +261,7 @@ void LOS::los_LU(ofstream& iteration) {
    real* bufL = new real[N];
    real* bufU = new real[N];
    real* buf = new real[N];
+   real diff = 1;
    for (int i = 0; i < N; i++) {
       x[i] = 0;
    }
@@ -265,11 +272,13 @@ void LOS::los_LU(ofstream& iteration) {
    matMul(z, p);
    Forward(p, p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps; i++) {
+   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
       calcAlpha();
       xk();
+      diff = abs(nev - nev_next);
       iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
-      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
+      nev_next = nev;
+      nev -= alpha * alpha * scalar(p, p, N);
       rk();
       Backward(r, bufU);
       matMul(bufU, buf);
