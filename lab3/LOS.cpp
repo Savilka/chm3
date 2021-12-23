@@ -198,17 +198,18 @@ void LOS::los(ofstream& iteration) {
    for (int i = 0; i < N; i++) {
       x[i] = 0;
    }
+   int i = 0;
    r0();
    copyVec(z, r, N);
    matMul(z, p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
+   for (; i < maxiter && nev > eps; i++) {
       calcAlpha();
       xk();
       diff = abs(nev - nev_next);
       iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
       nev_next = nev;
-      nev -= alpha * alpha * scalar(p, p, N);
+      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
       rk();
       matMul(r, Ar);
       calcBeta(Ar);
@@ -216,6 +217,7 @@ void LOS::los(ofstream& iteration) {
       matMul(r, Ak);
       pk(Ak);
    }
+   iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
 }
 
 void LOS::los_d(ofstream& iteration) {
@@ -228,19 +230,20 @@ void LOS::los_d(ofstream& iteration) {
    for (int i = 0; i < N; i++) {
       x[i] = 0;
    }
+   int i = 0;
    r0();
    vecDivD(r);
    copyVec(z, r, N);
    matMul(z, p);
    vecDivD(p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
+   for (; i < maxiter && nev > eps; i++) {
       calcAlpha();
       xk();
       diff = abs(nev - nev_next);
       iteration <<  "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
       nev_next = nev;
-      nev -= alpha * alpha * scalar(p, p, N);
+      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
       rk();
       matMul(r, Ar);
       vecDivD(Ar);
@@ -248,6 +251,7 @@ void LOS::los_d(ofstream& iteration) {
       zk(r);
       pk(Ar);
    }
+   iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
 }
 
 void LOS::los_LU(ofstream& iteration) {
@@ -265,6 +269,7 @@ void LOS::los_LU(ofstream& iteration) {
    for (int i = 0; i < N; i++) {
       x[i] = 0;
    }
+   int i = 0;
    LU(L, U, D);
    r0();
    Forward(r, r);
@@ -272,13 +277,13 @@ void LOS::los_LU(ofstream& iteration) {
    matMul(z, p);
    Forward(p, p);
    nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps && diff > 1e-15; i++) {
+   for (; i < maxiter && nev > eps; i++) {
       calcAlpha();
       xk();
       diff = abs(nev - nev_next);
       iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
       nev_next = nev;
-      nev -= alpha * alpha * scalar(p, p, N);
+      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
       rk();
       Backward(r, bufU);
       matMul(bufU, buf);
@@ -287,8 +292,8 @@ void LOS::los_LU(ofstream& iteration) {
       Backward(r, bufL);
       zk(bufL);
       pk(bufU);
-      
    }
+   iteration << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
 }
 
 void LOS::input(ifstream& fkuslau, ifstream& fig, ifstream& fjg, ifstream& fggl, ifstream& fggu, ifstream& fdi, ifstream& fpr) {
