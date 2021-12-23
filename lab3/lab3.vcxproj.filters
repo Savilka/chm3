@@ -55,5 +55,8 @@
     <Text Include="output.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="iteration.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>
