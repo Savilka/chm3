@@ -1,37 +1,58 @@
-#pragma once
 #include <iostream>
+#include <vector>
+#include <cmath>
 #include <fstream>
+#include<functional>
+#include <iomanip>
 
 using namespace std;
-
 typedef double real;
+real eps = 1e-13;
 
-class LOS {
-   int N;
-   int maxiter;
-   double eps, nev;
-   real* ggl, * ggu, * di, * pr;
-   int* ig, * jg;
-   real* r, * z, * p, * x;
-   real alpha, beta;
+struct Data
+{
+	// количество узлов
+	real nodes;
+	vector<double> k;
+	// количество точек для разбиения
+	vector<double>n;
+} x, y;
+
+class lab {
+
+
+	real lymbda, gamma;
+	int tmp, maxiter ;
+	real** view;
+	real* result;
+	real* F;
+	int* check;
+	real* n1;
+	real* n2;
+	real* n3;
+	real* n4;
+	real* di;
+	int* mx;
+	int* my;
 public:
-   void input(ifstream& kuslau, ifstream& ig, ifstream& jg, ifstream& ggl, ifstream& ggu, ifstream& di, ifstream& pr);
-   void output(ofstream& output);
-   void los();
-   void los_d();
-private:
-   void LU();
-   void r0();
-   void xk();
-   void rk();
-   void zk();
-   void pk(real* Ak);
-   void calcAlpha();
-   void calcBeta(real* Ar);
-   void copyVec(real* a, real* b, int size);
-   void matMul(real* vec, real* res);
-   void vecDivD(real* res);
-   real norm(real* vec);
-   real scalar(real* a, real* b, int size);
-};
+	double FuncF(double x, double y);
+	double FuncU(double x, double y);
+	void Read(Data& area, string file, int& m);
+	void MatrixIns(real* Ox, real* Oy, int i, int j);
+	void MatrixUnIns(real* Ox, real* Oy, int i, int j);
+	void MatrixBound(real* Ox, real* Oy, int i, int j);
+	void BuildGrid(Data S, real* res);
+	void Iteration(real* xk, real* xknext, double w, int nx, int ny);
+	void Multiply(real* x, int nx, int ny);
+	void Zeidel(double w, real* x, int nx, int ny);
+	double Norm(real* vec, int n);
+	double Addition(int i, real* x, int kx);
+	void GaussSeidel(real* x, real* f, double w, int kx);
+	void Output(real* x0, string file);
+	void AreaUn(double a, double b, double k, int n, real* res, int& q);
+	void BuildGridUn(Data S, real* res);
+	void CheckPoint(Data x, Data y, int Ox_size, int Oy_size);
+	void CheckArea(real* Ox, real* Oy, int c);
 
+
+};

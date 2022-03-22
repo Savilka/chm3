@@ -1,182 +1,325 @@
-#include "LOS.h"
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <fstream>
+#include<functional>
+#include <iomanip>
+#include"LOS.h"
 
-void LOS::r0() {
-   real* Ax = new real[N];
-   matMul(x, Ax);
-   for (int i = 0; i < N; i++)
-   {
-      r[i] = pr[i] - Ax[i];
-   }
+struct Data
+{
+	// количество узлов
+	real nodes;
+	vector<double> k;
+	// количество точек для разбиения
+	vector<double>n;
+} x, y;
+
+double FuncF(double x, double y)
+{
+	return 2 * x + 3;
 }
 
-real LOS::scalar(real* a, real* b, int size) {
-   real res = 0;
-   for (int i = 0; i < size; i++)
-      res += a[i] * b[i];
-   return res;
+double FuncU(double x, double y)
+{
+	return 2 * x + 3;
+}
+// считывание из входного файла
+void Read(Data& area, string file, int& m)
+{
+	ifstream fin(file + ".txt");
+	fin >> m;
+	area.nodes.resize(m, 0);
+	area.k.resize(m - 1, 0);
+	// количество точек для разбиений вместе с границами на отрезке
+	area.n.resize(m - 1, 0);
+	// данные в двух разных структурах x,y
+	for (int i = 0; i < m; i++)
+		fin >> area.nodes[i];
+	for (int i = 0; i < m - 1; i++)
+		fin >> area.k[i];
+	for (int i = 0; i < m - 1; i++)
+		fin >> area.n[i];
+	fin.close();
+}
+// внутренние узлы в равномерной матрице
+void MatrixIns(vector<double>Ox, vector<double>Oy, int i, int j)
+{
+	double hx = Ox[i + 1] - Ox[i];
+	double hy = Oy[j + 1] - Oy[j];
+	int row = j * Ox.size() + i;
+	n1[row] = -lymbda / (hy * hy);
+	n2[row] = -lymbda / (hx * hx);
+	di[row] = 2 * lymbda * (1 / (hx * hx) + 1 / (hy * hy)) + gamma;
+	n3[row - 1] = -lymbda / (hx * hx);
+	n4[row - Ox.size()] = -lymbda / (hy * hy);
+	F[row] = FuncF(Ox[i], Oy[j]); //есть ещё funcU
+}
+// внутренние узлы в неравномерной матрице
+void MatrixUnIns(vector<double>Ox, vector<double>Oy, int i, int j)
+{
+	double hx = Ox[i + 1] - Ox[i];
+	double hy = Oy[j + 1] - Oy[j];
+	double hx_pred = Ox[i] - Ox[i - 1];
+	double hy_pred = Oy[j] - Oy[j - 1];
+	int row = j * Ox.size() + i;
+	n1[row] = -2 * lymbda / (hy * (hy + hy_pred));
+	n2[row] = -2 * lymbda / (hx * (hx + hx_pred));
+	di[row] = 2 * lymbda * (1 / (hx * hx_pred) + 1 / (hy * hy_pred)) + gamma;
+	n3[row - 1] = -2 * lymbda / (hx_pred * (hx + hx_pred));
+	n4[row - Ox.size()] = -2 * lymbda / (hy_pred * (hy + hy_pred));
+	F[row] = FuncF(Ox[i], Oy[j]);
+}
+// краевые условия первого рода
+void MatrixBound(vector<double>Ox, vector<double>Oy, int i, int j)
+{
+	int glob = j * Ox.size() + i;
+	F[glob] = FuncU(Ox[i], Oy[j]);
 }
 
-void LOS::xk() {
-   for (int i = 0; i < N; i++) {
-      x[i] += alpha * z[i];
-   }
+void BuildGrid(Data S, vector<double>& res)
+{
+	double h, coord;
+
+	int q = 0, i;
+	for (int j = 0; j < S.n.size(); j++)
+	{
+		double b = S.nodes[j + 1];
+		coord = S.nodes[j];
+		//делим на количество областей
+		h = (b - coord) / (S.n[j] - 1);
+		for (i = 0; i < S.n[j] - 1; i++)
+		{
+			res.push_back(coord);
+			coord += h;
+		}
+		q += 1;
+		if (q == 1)
+			mxy.push_back(i);
+	}
+	res.push_back(S.nodes[S.nodes.size() - 1]);
+}
+// подсчет итерация
+void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int ny)
+{
+	int i = 0;
+	int m = nx;
+	double sum, w1;
+	int n = nx * ny;
+	for (i; i < n; i++)
+	{
+		int j = 0;
+		sum = 0;
+		if (i > 0) sum += n3[i - 1] * xk[i - 1];
+		if (i >= m) sum += n4[i - m] * xk[i - m];
+		sum += di[i] * xk[i];
+		if (i < n - 1) sum += n2[i] * xk[i + 1];
+		if (i < n - m) sum += n1[i] * xk[i + m];
+		sum = F[i] - sum;
+		w1 = w / di[i];
+		xknext[i] = xk[i] + w1 * sum;
+	}
+}
+// нахождение размерности
+void Multiply(vector<double>x, int nx, int ny)
+{
+	int i = 0;
+	double sum;
+	int m = nx;
+	int n = nx * ny;
+	for (i; i < tmp; i++)
+	{
+		sum = 0;
+		if (i > 0) sum += n3[i - 1] * x[i - 1];
+		if (i >= m) sum += n4[i - m] * x[i - m];
+		sum += di[i] * x[i];
+		if (i < n - 1) sum += n2[i] * x[i + 1];
+		if (i < n - m) sum += n1[i] * x[i + m];
+		result[i] = sum;
+	}
+}
+//  метод Зейделя
+void Zeidel(double w, vector<double>& x, int nx, int ny)
+{
+	int q = 0;
+	int i;
+	x.resize(tmp);
+	result.resize(tmp);
+	double nev, norm_b = 0, norm, d;
+	for (i = 0; i < tmp; i++)
+	{
+		x[i] = 0;
+		norm_b += F[i] * F[i];
+	}
+	nev = 1;
+	while (q < maxiter && nev < eps)
+	{
+		Iteration(x, x, w, nx, ny);
+		Multiply(x, nx, ny);
+		norm = 0;
+		for (i = 0; i < tmp; i++)
+		{
+			d = F[i] - result[i];
+			norm += d * d;
+		}
+		nev = sqrt(norm / norm_b);
+		q++;
+	}
+}
+// нахождение нормы
+double Norm(vector <double>& vec, int n)
+{
+	double norma = 0;
+	for (int i = 0; i < n; i++)
+		norma += vec[i] * vec[i];
+	return sqrt(norma);
 }
 
-void LOS::rk() {
-   for (int i = 0; i < N; i++) {
-      r[i] -= alpha * p[i];
-   }
+double Addition(int i, vector<double>& x, int kx)
+{
+	double sum = di[i] * x[i];
+	if (i < tmp - 1) sum += n2[i] * x[i + 1];
+	if (i < tmp - kx) sum += n1[i] * x[i + kx];
+	if (i >= 1) sum += n3[i - 1] * x[i - 1];
+	if (i >= kx) sum += n4[i - kx] * x[i - kx];
+	return sum;
 }
 
-void LOS::zk() {
-   for (int i = 0; i < N; i++) {
-      z[i] = r[i] + beta * z[i];
-   }
+void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx)
+{
+	x.resize(tmp);
+	double nev = 0;
+	int n = tmp;
+	double norma_b = 0, error = 0, errorx = 0;
+	for (int i = 0; i < n; i++)
+	{
+		norma_b += f[i] * f[i];
+		double sum = f[i] - Addition(i, x, kx);
+		nev += sum * sum;
+	}
+	norma_b = sqrt(norma_b);
+	nev = sqrt(nev) / norma_b;
+	for (int itr = 0; nev > eps && itr < maxiter; itr++)
+	{
+		nev = 0;
+		for (int i = 0; i < n; i++)
+		{
+			double sum = f[i] - Addition(i, x, kx);
+			x[i] = x[i] + w * sum / di[i];
+			nev += sum * sum;
+		}
+		nev = sqrt(nev) / norma_b;
+	}
+}
+// вывод в файл
+void Output(vector<double>x0, string file)
+{
+	ofstream fout(file + ".txt");
+	for (int i = 0; i < x0.size(); i++)
+		fout << setprecision(15) << x0[i] << endl;
 }
 
-void LOS::pk(real* Ak) {
-   
-   for (int i = 0; i < N; i++){
-      p[i] = Ak[i] + beta * p[i];
-   }
+void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q)
+{
+	double h0, h, coord;
+	coord = a;
+	//k^n, n-к-во разбиений
+	h0 = (b - a) * (1 - k) / (1 - pow(k, n - 1));
+	h = h0;
+	q += 1;
+	int i;
+	for (i = 1; i < n - 1; i++)
+	{
+		coord += h;
+		res.push_back(coord);
+		h *= k;
+	}
+	if (q == 1)
+		mxy.push_back(i);
 }
 
-real LOS::norm(real* vec) {
-   real res = 0;
-   for (int i = 0; i < N; i++) {
-      res += vec[i] * vec[i];
-   }
-   return sqrt(res);
+void BuildGridUn(Data S, vector<double>& res)
+{
+	int k = 0;
+	for (int i = 0; i < S.n.size(); i++)
+	{
+		res.push_back(S.nodes[i]);
+		AreaUn(S.nodes[i], S.nodes[i + 1], S.k[i], S.n[i], res, k);
+	}
+	res.push_back(S.nodes[S.nodes.size() - 1]);
+}
+// обнуление фиктивных узлов
+void CheckPoint(Data x, Data y, int Ox_size, int Oy_size)
+{
+	tmp = Ox_size * Oy_size;
+	// 1 - узел существует, не фиктивный
+	check.resize(tmp, 1);
+	for (int l = 0; l < Oy_size; l++)
+	{
+		for (int i = 0, q = 0; i < Ox_size; i++, q++)
+		{
+			if (view[l][q] == 0)
+			{
+				int row = l * Ox_size + i;
+				check[row] = 0;
+			}
+		}
+	}
 }
 
-void LOS::calcAlpha() {
-   alpha = scalar(p, r, N) / scalar(p, p, N);
+void CheckArea(vector<double>Ox, vector<double>Oy, int c)
+{
+	int nx = Ox.size();
+	int ny = Oy.size();
+	di.resize(tmp, 1);
+	n1.resize(tmp - nx + 1, 0);
+	n2.resize(tmp - 1, 0);
+	n3.resize(tmp - 1, 0);
+	n4.resize(tmp - nx + 1, 0);
+	F.resize(tmp, 0);
+	for (int j = 0; j < ny; j++)
+	{
+		for (int i = 0; i < nx; i++)
+		{
+			int flagx = 1;
+			int flagy = 1;
+			int row = j * nx + i;
+			// пропуск фиктивных узлов
+			if (check[row] == 0) continue;
+
+			//обработка внутренних узлов
+			for (int q = 0; q < x.nodes.size(); q++)
+			{
+				if ((Ox[i]) == x.nodes[q]) flagx = 0;
+			}
+			for (int q = 0; q < y.nodes.size(); q++)
+			{
+				if ((Oy[j]) == y.nodes[q]) flagy = 0;
+			}
+			if ((flagx == 1 || flagy == 1) && Ox[i] != Ox[0] && Ox[i] != Ox[Ox.size() - 1] && Oy[j] != Oy[0] && Oy[j] != Oy[Oy.size() - 1])
+			{
+				if (check[row - 1] == 1 && check[row + 1] == 1)
+				{
+					if (c == 1)
+						// для неравномерной сетки
+						MatrixUnIns(Ox, Oy, i, j);
+					else if (c == 2)
+						// для равномерной сетки 
+						MatrixIns(Ox, Oy, i, j);
+				}
+			}
+			else
+			{
+				// обработка первых граничных условий
+				MatrixBound(Ox, Oy, i, j);
+				continue;
+			}
+		}
+	}
 }
 
-void LOS::calcBeta(real* Ar) {
-   beta = scalar(p, Ar, N) / scalar(p, p, N);
+int main()
+{
+	
 }
-
-void LOS::matMul(real* vec, real* res) {
-   for (int i = 0; i < N; i++) {
-      res[i] = di[i] * vec[i];
-      for (int j = ig[i]; j < ig[i + 1]; j++) {
-         res[i] += ggl[j] * vec[jg[j]];
-         res[jg[j]] += ggu[j] * vec[i];
-      }
-   }
-}
-
-void LOS::copyVec(real* a, real* b, int size) {
-   for (int i = 0; i < size; i++) {
-      a[i] = b[i];
-   }
-}
-
-//M(-1)*vec, где M = di
-void LOS::vecDivD(real* res) {
-   for (int i = 0; i < N; i++) {
-      res[i] = res[i] / sqrt(di[i]);
-   }
-}
-
-void LOS::los() {
-   x = new real[N];
-   r = new real[N];
-   p = new real[N];
-   z = new real[N];
-   real* Ak = new real[N];
-   real* Ar = new real[N];
-   for (int i = 0; i < N; i++) {
-      x[i] = 0;
-   }
-   r0();
-   copyVec(z, r, N);
-   matMul(z, p);
-   nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps; i++) {
-      calcAlpha();
-      xk();
-      cout << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
-      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
-      rk();
-      matMul(r, Ar);
-      calcBeta(Ar);
-      zk();
-      matMul(r, Ak);
-      pk(Ak);
-   }
-}
-
-void LOS::los_d() {
-   x = new real[N];
-   r = new real[N];
-   p = new real[N];
-   z = new real[N];
-   real* Ar = new real[N];
-   for (int i = 0; i < N; i++) {
-      x[i] = 0;
-   }
-   r0();
-   vecDivD(r);
-   copyVec(z, r, N);
-   matMul(z, p);
-   vecDivD(p);
-   nev = scalar(r, r, N);
-   for (int i = 0; i < maxiter && nev > eps; i++) {
-      calcAlpha();
-      xk();
-      cout << "Iteration number: " << i << " | " << "Squared norm residuals: " << nev << endl;
-      nev = scalar(r, r, N) - alpha * alpha * scalar(p, p, N);
-      rk();
-      matMul(r, Ar);
-      vecDivD(Ar);
-      calcBeta(Ar);
-      zk();
-      pk(Ar);
-   }
-}
-
-void LOS::input(ifstream& fkuslau, ifstream& fig, ifstream& fjg, ifstream& fggl, ifstream& fggu, ifstream& fdi, ifstream& fpr) {
-   fkuslau >> N;
-   fkuslau >> maxiter;
-   fkuslau >> eps;
-
-   ig = new int[N + 1];
-   for (int i = 0; i < N + 1; i++) {
-      fig >> ig[i];
-      ig[i]--;
-   }
-
-   di = new real[N];
-   for (int i = 0; i < N; i++) {
-      fdi >> di[i];
-   }
-
-   jg = new int[ig[N]];
-   for (int i = 0; i < ig[N]; i++) {
-      fjg >> jg[i];
-      jg[i]--;
-   }
-
-   ggl = new real[ig[N]];
-   ggu = new real[ig[N]];
-   for (int j = 0; j < ig[N]; j++) {
-      fggl >> ggl[j];
-      fggu >> ggu[j];
-   }
- 
-
-   pr = new real[N];
-   for (int i = 0; i < N; i++) {
-      fpr >> pr[i];
-   }
-}
-
-void LOS::output(ofstream& output) {
-   for (int i = 0; i < N; i++) {
-      output << x[i] << endl;
-   }
-}
-
 
