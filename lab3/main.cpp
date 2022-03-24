@@ -8,9 +8,6 @@ int main() {
 	int m1, m2;
 	la.Read(x, "X", m1);
 	la.Read(y, "Y", m2);
-	vector<double>Ox;
-	vector<double>Oy;
-	vector<double>x0;
 	int nx, ny;
 	int c;
 	double w = 1.6;
@@ -22,10 +19,10 @@ int main() {
 	{
 	case 1:
 	{
-		la.BuildGrid(x, Ox);
+		la.BuildGrid(x, la.Ox);
 		// построили неравномерную прямоугольную сетку
-		la.BuildGridUn(y, Oy);
-		mx = mxy[0]; my = mxy[1];
+		la.BuildGridUn(y, la.Oy);
+		la.mx = mxy[0]; my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
 		view.resize(ny);//x
 		for (int i = 0; i < ny; i++)

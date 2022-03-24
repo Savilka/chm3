@@ -6,14 +6,6 @@
 #include <iomanip>
 #include"LOS.h"
 
-struct Data
-{
-	// количество узлов
-	real nodes;
-	vector<double> k;
-	// количество точек для разбиения
-	vector<double>n;
-} x, y;
 
 double FuncF(double x, double y)
 {

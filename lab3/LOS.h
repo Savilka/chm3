@@ -8,6 +8,8 @@
 using namespace std;
 typedef double real;
 real eps = 1e-13;
+real lymbda, gamma;
+int tmp, maxiter;
 
 struct Data
 {
@@ -20,9 +22,8 @@ struct Data
 
 class lab {
 
+public:
 
-	real lymbda, gamma;
-	int tmp, maxiter ;
 	real** view;
 	real* result;
 	real* F;
@@ -32,6 +33,9 @@ class lab {
 	real* n3;
 	real* n4;
 	real* di;
+	real* Ox;
+	real* Oy;
+	real* x0;
 	int* mx;
 	int* my;
 public:
