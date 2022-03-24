@@ -38,6 +38,7 @@ public:
 	real* x0;
 	int* mx;
 	int* my;
+	int* mxy;
 public:
 	double FuncF(double x, double y);
 	double FuncU(double x, double y);

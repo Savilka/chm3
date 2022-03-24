@@ -22,7 +22,7 @@ int main() {
 		la.BuildGrid(x, la.Ox);
 		// построили неравномерную пр€моугольную сетку
 		la.BuildGridUn(y, la.Oy);
-		la.mx = mxy[0]; my = mxy[1];
+		la.mx = la.mxy[0]; la.my = la.mxy[1];
 		nx = Ox.size(); ny = Oy.size();
 		view.resize(ny);//x
 		for (int i = 0; i < ny; i++)
@@ -36,20 +36,20 @@ int main() {
 				fin >> view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		CheckPoint(x, y, nx, ny);
+		la.CheckPoint(x, y, nx, ny);
 		// обрабатываем граничную и внутреннюю области
-		CheckArea(Ox, Oy, c);
-		GaussSeidel(x0, F, w, Ox.size());
-		Output(x0, "output");
-		Output(Ox, "Ox");
-		Output(Oy, "Oy");
+		la.CheckArea(Ox, Oy, c);
+		la.GaussSeidel(la.x0, la.F, w, Ox.size());
+		la.Output(la.x0, "output");
+		la.Output(Ox, "Ox");
+		la.Output(Oy, "Oy");
 		break;
 	}
 	case 2:
 	{
 		// построили равномерную пр€моугольную сетку
-		BuildGrid(x, Ox);
-		BuildGrid(y, Oy);
+		la.BuildGrid(x, la.Ox);
+		la.BuildGrid(y, la.Oy);
 		mx = mxy[0]; my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
 		view.resize(ny);//x
@@ -64,14 +64,14 @@ int main() {
 				fin >> view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		CheckPoint(x, y, nx, ny);
+		la.CheckPoint(x, y, nx, ny);
 		// обрабатываем граничную и внутреннюю области
-		CheckArea(Ox, Oy, c);
+		la.CheckArea(Ox, Oy, c);
 		//решение слау методом √аусса-«ейдел€
-		GaussSeidel(x0, F, w, Ox.size());
-		Output(x0, "output");
-		Output(Ox, "Ox");
-		Output(Oy, "Oy");
+		la.GaussSeidel(la.x0, la.F, w, Ox.size());
+		la.Output(la.x0, "output");
+		la.Output(Ox, "Ox");
+		la.Output(Oy, "Oy");
 		break;
 	}
 	}
