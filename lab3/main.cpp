@@ -1,13 +1,25 @@
 #include <iostream>
+#include <vector>
+#include <cmath>
+#include <fstream>
+#include<functional>
+#include <iomanip>
+
 #include "LOS.h"
 
 using namespace std;
 
 int main() {
 	lab la;
+	vector<real> Ox;
+	vector<real> Oy;
+	vector<real> x0;
+	int mx;
+	int my;
+	vector<real> mxy;
 	int m1, m2;
-	la.Read(x, "X", m1);
-	la.Read(y, "Y", m2);
+	la.Read(&x, "X", m1);
+	la.Read(&y, "Y", m2);
 	int nx, ny;
 	int c;
 	double w = 1.6;
@@ -19,28 +31,29 @@ int main() {
 	{
 	case 1:
 	{
-		la.BuildGrid(x, la.Ox);
+		la.BuildGrid(&x, Ox);
 		// построили неравномерную пр€моугольную сетку
-		la.BuildGridUn(y, la.Oy);
-		la.mx = la.mxy[0]; la.my = la.mxy[1];
+		la.BuildGridUn(&y, Oy);
+		mx = mxy[0]; my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
-		view.resize(ny);//x
+		la.view.resize(ny);//x
 		for (int i = 0; i < ny; i++)
 		{
-			view[i].resize(nx);//y
+			la.view[i].resize(nx);//y
 		}
 		ifstream fin;
 		fin.open("input.txt");
 		for (int j = 0; j < ny; j++)
 			for (int i = 0; i < nx; i++)
-				fin >> view[j][i];
+				fin >> la.view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		la.CheckPoint(x, y, nx, ny);
+		la.CheckPoint(&x, &y, nx, ny, la.check, la.view);
 		// обрабатываем граничную и внутреннюю области
-		la.CheckArea(Ox, Oy, c);
-		la.GaussSeidel(la.x0, la.F, w, Ox.size());
-		la.Output(la.x0, "output");
+		la.CheckArea(Ox, Oy, c, la.n1, la.n2,  la.di, la.n3,
+			 la.n4,  la.F, la.check);
+		la.GaussSeidel( x0 , la.F, w, Ox.size());
+		la.Output(x0, "output");
 		la.Output(Ox, "Ox");
 		la.Output(Oy, "Oy");
 		break;
@@ -48,28 +61,29 @@ int main() {
 	case 2:
 	{
 		// построили равномерную пр€моугольную сетку
-		la.BuildGrid(x, la.Ox);
-		la.BuildGrid(y, la.Oy);
-		mx = mxy[0]; my = mxy[1];
+		la.BuildGrid(&x, Ox);
+		la.BuildGrid(&y, Oy);
+		mx = mxy[0];*la.my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
-		view.resize(ny);//x
+		la.view.resize(ny);//x
 		for (int i = 0; i < ny; i++)
 		{
-			view[i].resize(nx);//y
+			la.view[i].resize(nx);//y
 		}
 		ifstream fin;
 		fin.open("input.txt");
 		for (int j = 0; j < ny; j++)
 			for (int i = 0; i < nx; i++)
-				fin >> view[j][i];
+				fin >> la.view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		la.CheckPoint(x, y, nx, ny);
+		la.CheckPoint(&x, &y, nx, ny, la.check, la.view);
 		// обрабатываем граничную и внутреннюю области
-		la.CheckArea(Ox, Oy, c);
+		la.CheckArea(Ox, Oy, c, la.n1, la.n2, la.di, la.n3,
+			la.n4, la.F,la.check);
 		//решение слау методом √аусса-«ейдел€
-		la.GaussSeidel(la.x0, la.F, w, Ox.size());
-		la.Output(la.x0, "output");
+		la.GaussSeidel(x0, la.F, w, Ox.size());
+		la.Output(x0, "output");
 		la.Output(Ox, "Ox");
 		la.Output(Oy, "Oy");
 		break;

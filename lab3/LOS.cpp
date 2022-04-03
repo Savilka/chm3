@@ -7,6 +7,7 @@
 #include"LOS.h"
 
 
+
 double FuncF(double x, double y)
 {
 	return 2 * x + 3;
@@ -21,7 +22,7 @@ void Read(Data& area, string file, int& m)
 {
 	ifstream fin(file + ".txt");
 	fin >> m;
-	area.nodes.resize(m, 0);
+	 area.nodes.resize(m, 0);
 	area.k.resize(m - 1, 0);
 	// количество точек для разбиений вместе с границами на отрезке
 	area.n.resize(m - 1, 0);
@@ -35,7 +36,8 @@ void Read(Data& area, string file, int& m)
 	fin.close();
 }
 // внутренние узлы в равномерной матрице
-void MatrixIns(vector<double>Ox, vector<double>Oy, int i, int j)
+void MatrixIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,	
+	vector<double> n4, vector<double> F)
 {
 	double hx = Ox[i + 1] - Ox[i];
 	double hy = Oy[j + 1] - Oy[j];
@@ -48,7 +50,8 @@ void MatrixIns(vector<double>Ox, vector<double>Oy, int i, int j)
 	F[row] = FuncF(Ox[i], Oy[j]); //есть ещё funcU
 }
 // внутренние узлы в неравномерной матрице
-void MatrixUnIns(vector<double>Ox, vector<double>Oy, int i, int j)
+void MatrixUnIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
+	vector<double> n4, vector<double> F)
 {
 	double hx = Ox[i + 1] - Ox[i];
 	double hy = Oy[j + 1] - Oy[j];
@@ -63,13 +66,13 @@ void MatrixUnIns(vector<double>Ox, vector<double>Oy, int i, int j)
 	F[row] = FuncF(Ox[i], Oy[j]);
 }
 // краевые условия первого рода
-void MatrixBound(vector<double>Ox, vector<double>Oy, int i, int j)
+void MatrixBound(vector<double>Ox, vector<double>Oy, int i, int j, vector<double>& F)
 {
 	int glob = j * Ox.size() + i;
 	F[glob] = FuncU(Ox[i], Oy[j]);
 }
 
-void BuildGrid(Data S, vector<double>& res)
+void BuildGrid(Data* S, vector<double>& res, vector<double>& mxy)
 {
 	double h, coord;
 
@@ -92,7 +95,8 @@ void BuildGrid(Data S, vector<double>& res)
 	res.push_back(S.nodes[S.nodes.size() - 1]);
 }
 // подсчет итерация
-void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int ny)
+void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4, vector<double>& F)
 {
 	int i = 0;
 	int m = nx;
@@ -113,7 +117,8 @@ void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int 
 	}
 }
 // нахождение размерности
-void Multiply(vector<double>x, int nx, int ny)
+void Multiply(vector<double>x, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4, vector<int>& result)
 {
 	int i = 0;
 	double sum;
@@ -131,7 +136,8 @@ void Multiply(vector<double>x, int nx, int ny)
 	}
 }
 //  метод Зейделя
-void Zeidel(double w, vector<double>& x, int nx, int ny)
+void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vector<double>& xknext, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4, vector<double>& F, vector<int>& result)
 {
 	int q = 0;
 	int i;
@@ -146,8 +152,8 @@ void Zeidel(double w, vector<double>& x, int nx, int ny)
 	nev = 1;
 	while (q < maxiter && nev < eps)
 	{
-		Iteration(x, x, w, nx, ny);
-		Multiply(x, nx, ny);
+		Iteration(x, x, w, nx, ny ,xk ,xknext,n1,n2,n4,F);
+		Multiply(x, nx, ny, n1, n2, di, n3, n4, result);
 		norm = 0;
 		for (i = 0; i < tmp; i++)
 		{
@@ -167,7 +173,8 @@ double Norm(vector <double>& vec, int n)
 	return sqrt(norma);
 }
 
-double Addition(int i, vector<double>& x, int kx)
+double Addition(int i, vector<double>& x, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4)
 {
 	double sum = di[i] * x[i];
 	if (i < tmp - 1) sum += n2[i] * x[i + 1];
@@ -177,7 +184,8 @@ double Addition(int i, vector<double>& x, int kx)
 	return sum;
 }
 
-void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx)
+void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4)
 {
 	x.resize(tmp);
 	double nev = 0;
@@ -186,7 +194,7 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx)
 	for (int i = 0; i < n; i++)
 	{
 		norma_b += f[i] * f[i];
-		double sum = f[i] - Addition(i, x, kx);
+		double sum = f[i] - Addition(i, x, kx, n1,n2,di,n3,n4);
 		nev += sum * sum;
 	}
 	norma_b = sqrt(norma_b);
@@ -196,7 +204,7 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx)
 		nev = 0;
 		for (int i = 0; i < n; i++)
 		{
-			double sum = f[i] - Addition(i, x, kx);
+			double sum = f[i] - Addition(i, x, kx, n1, n2, di, n3, n4);
 			x[i] = x[i] + w * sum / di[i];
 			nev += sum * sum;
 		}
@@ -230,7 +238,7 @@ void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q)
 		mxy.push_back(i);
 }
 
-void BuildGridUn(Data S, vector<double>& res)
+void BuildGridUn(Data *S, vector<double>& res)
 {
 	int k = 0;
 	for (int i = 0; i < S.n.size(); i++)
@@ -241,7 +249,7 @@ void BuildGridUn(Data S, vector<double>& res)
 	res.push_back(S.nodes[S.nodes.size() - 1]);
 }
 // обнуление фиктивных узлов
-void CheckPoint(Data x, Data y, int Ox_size, int Oy_size)
+void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, vector<vector<real>>& view)
 {
 	tmp = Ox_size * Oy_size;
 	// 1 - узел существует, не фиктивный
@@ -259,7 +267,8 @@ void CheckPoint(Data x, Data y, int Ox_size, int Oy_size)
 	}
 }
 
-void CheckArea(vector<double>Ox, vector<double>Oy, int c)
+void CheckArea(vector<double>Ox, vector<double>Oy, int c, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4, vector<double>& F, vector<int>& check)
 {
 	int nx = Ox.size();
 	int ny = Oy.size();
@@ -294,24 +303,19 @@ void CheckArea(vector<double>Ox, vector<double>Oy, int c)
 				{
 					if (c == 1)
 						// для неравномерной сетки
-						MatrixUnIns(Ox, Oy, i, j);
+						MatrixUnIns(Ox, Oy, i, j, n1,  n2, di,  n3, n4, F);
 					else if (c == 2)
 						// для равномерной сетки 
-						MatrixIns(Ox, Oy, i, j);
+						MatrixIns(Ox, Oy, i, j, n1, n2, di, n3, n4, F);
 				}
 			}
 			else
 			{
 				// обработка первых граничных условий
-				MatrixBound(Ox, Oy, i, j);
+				MatrixBound(Ox, Oy, i, j, F);
 				continue;
 			}
 		}
 	}
-}
-
-int main()
-{
-	
 }
 
