@@ -19,10 +19,13 @@ double FuncU(double x, double y)
 }
 // считывание из входного файла
 void Read(Data& area, string file, int& m)
+
 {
+	//area.nodes = new vector<real>;
+
 	ifstream fin(file + ".txt");
 	fin >> m;
-	 area.nodes.resize(m, 0);
+	area.nodes.resize(m, 0);
 	area.k.resize(m - 1, 0);
 	// количество точек для разбиений вместе с границами на отрезке
 	area.n.resize(m - 1, 0);

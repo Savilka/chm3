@@ -40,7 +40,7 @@ public:
 public:
 	double FuncF(double x, double y);
 	double FuncU(double x, double y);
-	void Read(Data *area, string file, int& m);
+	void Read(Data& area, string file, int& m);
 
 	void MatrixIns(vector<real> Ox, vector<real>Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
 		vector<double> n4, vector<double> F);
@@ -50,7 +50,7 @@ public:
 
 	void MatrixBound(vector<real> Ox, vector<real> Oy, int i, int j);
 
-	void BuildGrid(Data *S, vector<real> res);
+	void BuildGrid(Data& S, vector<real> res);
 
 	void Iteration(vector<real> xk, vector<real> xknext, double w, int nx, int ny);
 
@@ -65,10 +65,11 @@ public:
 	void GaussSeidel(vector<real> x, vector<real> f, double w, int kx);
 	void Output(vector<real> x0, string file);
 	void AreaUn(double a, double b, double k, int n, vector<real> res, int& q);
-	void BuildGridUn(Data *S, vector<real> res);
-	void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int> check, vector<real> view);
+	void BuildGridUn(Data& S, vector<real> res);
+	void CheckPoint(Data& x, Data *y, int Ox_size, int Oy_size, vector<int> check, vector<real> view);
 	void CheckArea(vector<real> Ox, vector<real> Oy, int c, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
 		vector<double> n4, vector<double> F, vector<int> check);
 
 
 };
+

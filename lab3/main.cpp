@@ -14,12 +14,13 @@ int main() {
 	vector<real> Ox;
 	vector<real> Oy;
 	vector<real> x0;
+	
 	int mx;
 	int my;
 	vector<real> mxy;
 	int m1, m2;
-	la.Read(&x, "X", m1);
-	la.Read(&y, "Y", m2);
+	la.Read(x, "X", m1);
+	la.Read(y, "Y", m2);
 	int nx, ny;
 	int c;
 	double w = 1.6;
@@ -61,8 +62,8 @@ int main() {
 	case 2:
 	{
 		// построили равномерную пр€моугольную сетку
-		la.BuildGrid(&x, Ox);
-		la.BuildGrid(&y, Oy);
+		la.BuildGrid(x, Ox);
+		la.BuildGrid(y, Oy);
 		mx = mxy[0];*la.my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
 		la.view.resize(ny);//x
