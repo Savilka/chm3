@@ -11,16 +11,16 @@ using namespace std;
 
 int main() {
 	lab la;
+	int tmp = 0;
 	vector<real> Ox;
 	vector<real> Oy;
 	vector<real> x0;
-	
 	int mx;
 	int my;
 	vector<real> mxy;
 	int m1, m2;
-	la.Read(x, "X", m1);
-	la.Read(y, "Y", m2);
+	la.Read(&x, "X", m1);
+	la.Read(&y, "Y", m2);
 	int nx, ny;
 	int c;
 	double w = 1.6;
@@ -49,11 +49,11 @@ int main() {
 				fin >> la.view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		la.CheckPoint(&x, &y, nx, ny, la.check, la.view);
+		la.CheckPoint(&x, &y, nx, ny, la.check, la.view, tmp);
 		// обрабатываем граничную и внутреннюю области
-		la.CheckArea(Ox, Oy, c, la.n1, la.n2,  la.di, la.n3,
-			 la.n4,  la.F, la.check);
-		la.GaussSeidel( x0 , la.F, w, Ox.size());
+		la.CheckArea(x,y,Ox, Oy, c, la.n1, la.n2,  la.di, la.n3,
+			 la.n4,  la.F, la.check, tmp);
+		la.GaussSeidel( x0 , la.F, w, Ox.size(), tmp);
 		la.Output(x0, "output");
 		la.Output(Ox, "Ox");
 		la.Output(Oy, "Oy");
@@ -62,8 +62,8 @@ int main() {
 	case 2:
 	{
 		// построили равномерную пр€моугольную сетку
-		la.BuildGrid(x, Ox);
-		la.BuildGrid(y, Oy);
+		la.BuildGrid(&x, Ox);
+		la.BuildGrid(&y, Oy);
 		mx = mxy[0];*la.my = mxy[1];
 		nx = Ox.size(); ny = Oy.size();
 		la.view.resize(ny);//x
@@ -78,12 +78,12 @@ int main() {
 				fin >> la.view[j][i];
 		fin.close();
 		// вы€вили фиктивные вершины
-		la.CheckPoint(&x, &y, nx, ny, la.check, la.view);
+		la.CheckPoint(&x, &y, nx, ny, la.check, la.view,tmp);
 		// обрабатываем граничную и внутреннюю области
-		la.CheckArea(Ox, Oy, c, la.n1, la.n2, la.di, la.n3,
-			la.n4, la.F,la.check);
+		la.CheckArea(x,y, Ox, Oy, c, la.n1, la.n2, la.di, la.n3,
+			la.n4, la.F,la.check,tmp);
 		//решение слау методом √аусса-«ейдел€
-		la.GaussSeidel(x0, la.F, w, Ox.size());
+		la.GaussSeidel(x0, la.F, w, Ox.size(),tmp);
 		la.Output(x0, "output");
 		la.Output(Ox, "Ox");
 		la.Output(Oy, "Oy");

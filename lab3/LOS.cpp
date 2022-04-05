@@ -18,24 +18,23 @@ double FuncU(double x, double y)
 	return 2 * x + 3;
 }
 // считывание из входного файла
-void Read(Data& area, string file, int& m)
+void Read(Data *area, string file, int& m)
 
 {
-	//area.nodes = new vector<real>;
-
+	
 	ifstream fin(file + ".txt");
 	fin >> m;
-	area.nodes.resize(m, 0);
-	area.k.resize(m - 1, 0);
+	area->nodes.resize(m, 0);
+	area->k.resize(m - 1, 0);
 	// количество точек для разбиений вместе с границами на отрезке
-	area.n.resize(m - 1, 0);
+	area->n.resize(m - 1, 0);
 	// данные в двух разных структурах x,y
 	for (int i = 0; i < m; i++)
-		fin >> area.nodes[i];
+		fin >> area->nodes[i];
 	for (int i = 0; i < m - 1; i++)
-		fin >> area.k[i];
+		fin >> area->k[i];
 	for (int i = 0; i < m - 1; i++)
-		fin >> area.n[i];
+		fin >> area->n[i];
 	fin.close();
 }
 // внутренние узлы в равномерной матрице
@@ -80,13 +79,13 @@ void BuildGrid(Data* S, vector<double>& res, vector<double>& mxy)
 	double h, coord;
 
 	int q = 0, i;
-	for (int j = 0; j < S.n.size(); j++)
+	for (int j = 0; j < S->n.size(); j++)
 	{
-		double b = S.nodes[j + 1];
-		coord = S.nodes[j];
+		double b = S->nodes[j + 1];
+		coord = S->nodes[j];
 		//делим на количество областей
-		h = (b - coord) / (S.n[j] - 1);
-		for (i = 0; i < S.n[j] - 1; i++)
+		h = (b - coord) / (S->n[j] - 1);
+		for (i = 0; i < S->n[j] - 1; i++)
 		{
 			res.push_back(coord);
 			coord += h;
@@ -95,7 +94,7 @@ void BuildGrid(Data* S, vector<double>& res, vector<double>& mxy)
 		if (q == 1)
 			mxy.push_back(i);
 	}
-	res.push_back(S.nodes[S.nodes.size() - 1]);
+	res.push_back(S->nodes[S->nodes.size() - 1]);
 }
 // подсчет итерация
 void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
@@ -121,7 +120,7 @@ void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int 
 }
 // нахождение размерности
 void Multiply(vector<double>x, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<int>& result)
+	vector<double>& n4, vector<int>& result, int tmp)
 {
 	int i = 0;
 	double sum;
@@ -140,7 +139,7 @@ void Multiply(vector<double>x, int nx, int ny, vector<double>& n1, vector<double
 }
 //  метод Зейделя
 void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vector<double>& xknext, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<double>& F, vector<int>& result)
+	vector<double>& n4, vector<double>& F, vector<int>& result, int tmp)
 {
 	int q = 0;
 	int i;
@@ -156,7 +155,7 @@ void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vect
 	while (q < maxiter && nev < eps)
 	{
 		Iteration(x, x, w, nx, ny ,xk ,xknext,n1,n2,n4,F);
-		Multiply(x, nx, ny, n1, n2, di, n3, n4, result);
+		Multiply(x, nx, ny, n1, n2, di, n3, n4, result,tmp);
 		norm = 0;
 		for (i = 0; i < tmp; i++)
 		{
@@ -177,7 +176,7 @@ double Norm(vector <double>& vec, int n)
 }
 
 double Addition(int i, vector<double>& x, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4)
+	vector<double>& n4,int tmp)
 {
 	double sum = di[i] * x[i];
 	if (i < tmp - 1) sum += n2[i] * x[i + 1];
@@ -188,7 +187,7 @@ double Addition(int i, vector<double>& x, int kx, vector<double>& n1, vector<dou
 }
 
 void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4)
+	vector<double>& n4, int tmp)
 {
 	x.resize(tmp);
 	double nev = 0;
@@ -197,7 +196,7 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<
 	for (int i = 0; i < n; i++)
 	{
 		norma_b += f[i] * f[i];
-		double sum = f[i] - Addition(i, x, kx, n1,n2,di,n3,n4);
+		double sum = f[i] - Addition(i, x, kx, n1,n2,di,n3,n4,tmp);
 		nev += sum * sum;
 	}
 	norma_b = sqrt(norma_b);
@@ -207,7 +206,7 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<
 		nev = 0;
 		for (int i = 0; i < n; i++)
 		{
-			double sum = f[i] - Addition(i, x, kx, n1, n2, di, n3, n4);
+			double sum = f[i] - Addition(i, x, kx, n1, n2, di, n3, n4, tmp);
 			x[i] = x[i] + w * sum / di[i];
 			nev += sum * sum;
 		}
@@ -222,7 +221,7 @@ void Output(vector<double>x0, string file)
 		fout << setprecision(15) << x0[i] << endl;
 }
 
-void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q)
+void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q,vector<real>& mxy)
 {
 	double h0, h, coord;
 	coord = a;
@@ -241,18 +240,18 @@ void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q)
 		mxy.push_back(i);
 }
 
-void BuildGridUn(Data *S, vector<double>& res)
+void BuildGridUn(Data *S, vector<double>& res,vector<real>& mxy)
 {
 	int k = 0;
-	for (int i = 0; i < S.n.size(); i++)
+	for (int i = 0; i < S->n.size(); i++)
 	{
-		res.push_back(S.nodes[i]);
-		AreaUn(S.nodes[i], S.nodes[i + 1], S.k[i], S.n[i], res, k);
+		res.push_back(S->nodes[i]);
+		AreaUn(S->nodes[i], S->nodes[i + 1], S->k[i], S->n[i], res, k, mxy);
 	}
-	res.push_back(S.nodes[S.nodes.size() - 1]);
+	res.push_back(S->nodes[S->nodes.size() - 1]);
 }
 // обнуление фиктивных узлов
-void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, vector<vector<real>>& view)
+void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, vector<vector<real>>& view, int &tmp)
 {
 	tmp = Ox_size * Oy_size;
 	// 1 - узел существует, не фиктивный
@@ -270,8 +269,8 @@ void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, 
 	}
 }
 
-void CheckArea(vector<double>Ox, vector<double>Oy, int c, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<double>& F, vector<int>& check)
+void CheckArea(Data x,Data y,vector<double>Ox, vector<double>Oy, int c, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
+	vector<double>& n4, vector<double>& F, vector<int>& check, int tmp)
 {
 	int nx = Ox.size();
 	int ny = Oy.size();
