@@ -8,41 +8,40 @@
 
 
 
-double FuncF(double x, double y)
+real lab::FuncF(real x, real y)
 {
-	return 2 * x + 3;
+	return x + y;
 }
 
-double FuncU(double x, double y)
+real lab::FuncU(real x, real y)
 {
-	return 2 * x + 3;
+	return x + y;
 }
 // считывание из входного файла
-void Read(Data *area, string file, int& m)
+void lab::Read(Data& area, string file, int& m)
 
 {
 	
 	ifstream fin(file + ".txt");
 	fin >> m;
-	area->nodes.resize(m, 0);
-	area->k.resize(m - 1, 0);
+	area.nodes.resize(m, 0);
+	area.k.resize(m - 1, 0);
 	// количество точек для разбиений вместе с границами на отрезке
-	area->n.resize(m - 1, 0);
+	area.n.resize(m - 1, 0);
 	// данные в двух разных структурах x,y
 	for (int i = 0; i < m; i++)
-		fin >> area->nodes[i];
+		fin >> area.nodes[i];
 	for (int i = 0; i < m - 1; i++)
-		fin >> area->k[i];
+		fin >> area.k[i];
 	for (int i = 0; i < m - 1; i++)
-		fin >> area->n[i];
+		fin >> area.n[i];
 	fin.close();
 }
 // внутренние узлы в равномерной матрице
-void MatrixIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,	
-	vector<double> n4, vector<double> F)
+void lab::MatrixIns(vector<real> Ox, vector<real> Oy, int i, int j)
 {
-	double hx = Ox[i + 1] - Ox[i];
-	double hy = Oy[j + 1] - Oy[j];
+	real hx = Ox[i + 1] - Ox[i];
+	real hy = Oy[j + 1] - Oy[j];
 	int row = j * Ox.size() + i;
 	n1[row] = -lymbda / (hy * hy);
 	n2[row] = -lymbda / (hx * hx);
@@ -52,13 +51,12 @@ void MatrixIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<double
 	F[row] = FuncF(Ox[i], Oy[j]); //есть ещё funcU
 }
 // внутренние узлы в неравномерной матрице
-void MatrixUnIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
-	vector<double> n4, vector<double> F)
+void lab::MatrixUnIns(vector<real> Ox, vector<real> Oy, int i, int j)
 {
-	double hx = Ox[i + 1] - Ox[i];
-	double hy = Oy[j + 1] - Oy[j];
-	double hx_pred = Ox[i] - Ox[i - 1];
-	double hy_pred = Oy[j] - Oy[j - 1];
+	real hx = Ox[i + 1] - Ox[i];
+	real hy = Oy[j + 1] - Oy[j];
+	real hx_pred = Ox[i] - Ox[i - 1];
+	real hy_pred = Oy[j] - Oy[j - 1];
 	int row = j * Ox.size() + i;
 	n1[row] = -2 * lymbda / (hy * (hy + hy_pred));
 	n2[row] = -2 * lymbda / (hx * (hx + hx_pred));
@@ -68,41 +66,40 @@ void MatrixUnIns(vector<double> Ox, vector<double> Oy, int i, int j, vector<doub
 	F[row] = FuncF(Ox[i], Oy[j]);
 }
 // краевые условия первого рода
-void MatrixBound(vector<double>Ox, vector<double>Oy, int i, int j, vector<double>& F)
+void lab::MatrixBound(vector<real>Ox, vector<real>Oy, int i, int j)
 {
 	int glob = j * Ox.size() + i;
 	F[glob] = FuncU(Ox[i], Oy[j]);
 }
 
-void BuildGrid(Data* S, vector<double>& res, vector<double>& mxy)
+void lab::BuildGrid(Data& S, vector<real>& Ox)
 {
-	double h, coord;
+	real h, coord;
 
 	int q = 0, i;
-	for (int j = 0; j < S->n.size(); j++)
+	for (int j = 0; j < S.n.size(); j++)
 	{
-		double b = S->nodes[j + 1];
-		coord = S->nodes[j];
+		real b = S.nodes[j + 1];
+		coord = S.nodes[j];
 		//делим на количество областей
-		h = (b - coord) / (S->n[j] - 1);
-		for (i = 0; i < S->n[j] - 1; i++)
+		h = (b - coord) / (S.n[j] - 1);
+		for (i = 0; i < S.n[j] - 1; i++)
 		{
-			res.push_back(coord);
+			Ox.push_back(coord);
 			coord += h;
 		}
 		q += 1;
 		if (q == 1)
 			mxy.push_back(i);
 	}
-	res.push_back(S->nodes[S->nodes.size() - 1]);
+	Ox.push_back(S.nodes[S.nodes.size() - 1]);
 }
 // подсчет итерация
-void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<double>& F)
+void lab::Iteration(vector<real> xk, vector<real>& xknext, real w, int nx, int ny)
 {
 	int i = 0;
 	int m = nx;
-	double sum, w1;
+	real sum, w1;
 	int n = nx * ny;
 	for (i; i < n; i++)
 	{
@@ -119,11 +116,10 @@ void Iteration(vector<double> xk, vector<double>& xknext, double w, int nx, int 
 	}
 }
 // нахождение размерности
-void Multiply(vector<double>x, int nx, int ny, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<int>& result, int tmp)
+void lab::Multiply(vector<real>x, int nx, int ny, int tmp)
 {
 	int i = 0;
-	double sum;
+	real sum;
 	int m = nx;
 	int n = nx * ny;
 	for (i; i < tmp; i++)
@@ -138,14 +134,13 @@ void Multiply(vector<double>x, int nx, int ny, vector<double>& n1, vector<double
 	}
 }
 //  метод Зейделя
-void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vector<double>& xknext, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<double>& F, vector<int>& result, int tmp)
+void lab::Zeidel(real w, vector<real>& x, int nx, int ny, vector<real> xk, vector<real>& xknext, int tmp)
 {
 	int q = 0;
 	int i;
 	x.resize(tmp);
 	result.resize(tmp);
-	double nev, norm_b = 0, norm, d;
+	real nev, norm_b = 0, norm, d;
 	for (i = 0; i < tmp; i++)
 	{
 		x[i] = 0;
@@ -154,8 +149,8 @@ void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vect
 	nev = 1;
 	while (q < maxiter && nev < eps)
 	{
-		Iteration(x, x, w, nx, ny ,xk ,xknext,n1,n2,n4,F);
-		Multiply(x, nx, ny, n1, n2, di, n3, n4, result,tmp);
+		Iteration(xk, xknext, w, nx, ny);
+		Multiply(x, nx, ny, tmp);
 		norm = 0;
 		for (i = 0; i < tmp; i++)
 		{
@@ -167,18 +162,17 @@ void Zeidel(double w, vector<double>& x, int nx, int ny, vector<double> xk, vect
 	}
 }
 // нахождение нормы
-double Norm(vector <double>& vec, int n)
+real lab::Norm(vector <real>& vec, int n)
 {
-	double norma = 0;
+	real norma = 0;
 	for (int i = 0; i < n; i++)
 		norma += vec[i] * vec[i];
 	return sqrt(norma);
 }
 
-double Addition(int i, vector<double>& x, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4,int tmp)
+real lab::Addition(int i, vector<real>& x, int kx, int tmp)
 {
-	double sum = di[i] * x[i];
+	real sum = di[i] * x[i];
 	if (i < tmp - 1) sum += n2[i] * x[i + 1];
 	if (i < tmp - kx) sum += n1[i] * x[i + kx];
 	if (i >= 1) sum += n3[i - 1] * x[i - 1];
@@ -186,17 +180,16 @@ double Addition(int i, vector<double>& x, int kx, vector<double>& n1, vector<dou
 	return sum;
 }
 
-void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, int tmp)
+void lab::GaussSeidel(vector<real>& x, vector<real>& f, real w, int kx, int tmp)
 {
 	x.resize(tmp);
-	double nev = 0;
+	real nev = 0;
 	int n = tmp;
-	double norma_b = 0, error = 0, errorx = 0;
+	real norma_b = 0, error = 0, errorx = 0;
 	for (int i = 0; i < n; i++)
 	{
 		norma_b += f[i] * f[i];
-		double sum = f[i] - Addition(i, x, kx, n1,n2,di,n3,n4,tmp);
+		real sum = f[i] - Addition(i, x, kx, tmp);
 		nev += sum * sum;
 	}
 	norma_b = sqrt(norma_b);
@@ -206,7 +199,7 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<
 		nev = 0;
 		for (int i = 0; i < n; i++)
 		{
-			double sum = f[i] - Addition(i, x, kx, n1, n2, di, n3, n4, tmp);
+			real sum = f[i] - Addition(i, x, kx, tmp);
 			x[i] = x[i] + w * sum / di[i];
 			nev += sum * sum;
 		}
@@ -214,16 +207,16 @@ void GaussSeidel(vector<double>& x, vector<double>& f, double w, int kx, vector<
 	}
 }
 // вывод в файл
-void Output(vector<double>x0, string file)
+void lab::Output(vector<real>x0, string file)
 {
 	ofstream fout(file + ".txt");
 	for (int i = 0; i < x0.size(); i++)
 		fout << setprecision(15) << x0[i] << endl;
 }
 
-void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q,vector<real>& mxy)
+void lab::AreaUn(real a, real b, real k, int n, vector<real>& res, int& q)
 {
-	double h0, h, coord;
+	real h0, h, coord;
 	coord = a;
 	//k^n, n-к-во разбиений
 	h0 = (b - a) * (1 - k) / (1 - pow(k, n - 1));
@@ -240,18 +233,18 @@ void AreaUn(double a, double b, double k, int n, vector<double>& res, int& q,vec
 		mxy.push_back(i);
 }
 
-void BuildGridUn(Data *S, vector<double>& res,vector<real>& mxy)
+void lab::BuildGridUn(Data &S, vector<real>& res)
 {
 	int k = 0;
-	for (int i = 0; i < S->n.size(); i++)
+	for (int i = 0; i < S.n.size(); i++)
 	{
-		res.push_back(S->nodes[i]);
-		AreaUn(S->nodes[i], S->nodes[i + 1], S->k[i], S->n[i], res, k, mxy);
+		res.push_back(S.nodes[i]);
+		AreaUn(S.nodes[i], S.nodes[i + 1], S.k[i], S.n[i], res, k);
 	}
-	res.push_back(S->nodes[S->nodes.size() - 1]);
+	res.push_back(S.nodes[S.nodes.size() - 1]);
 }
 // обнуление фиктивных узлов
-void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, vector<vector<real>>& view, int &tmp)
+void lab::CheckPoint(Data& x, Data& y, int Ox_size, int Oy_size, int &tmp)
 {
 	tmp = Ox_size * Oy_size;
 	// 1 - узел существует, не фиктивный
@@ -269,8 +262,7 @@ void CheckPoint(Data *x, Data *y, int Ox_size, int Oy_size, vector<int>& check, 
 	}
 }
 
-void CheckArea(Data x,Data y,vector<double>Ox, vector<double>Oy, int c, vector<double>& n1, vector<double>& n2, vector<double>& di, vector<double>& n3,
-	vector<double>& n4, vector<double>& F, vector<int>& check, int tmp)
+void lab::CheckArea(Data& x,Data& y,vector<real>Ox, vector<real>Oy, int c, int tmp)
 {
 	int nx = Ox.size();
 	int ny = Oy.size();
@@ -305,16 +297,16 @@ void CheckArea(Data x,Data y,vector<double>Ox, vector<double>Oy, int c, vector<d
 				{
 					if (c == 1)
 						// для неравномерной сетки
-						MatrixUnIns(Ox, Oy, i, j, n1,  n2, di,  n3, n4, F);
+						MatrixUnIns(Ox, Oy, i, j);
 					else if (c == 2)
 						// для равномерной сетки 
-						MatrixIns(Ox, Oy, i, j, n1, n2, di, n3, n4, F);
+						MatrixIns(Ox, Oy, i, j);
 				}
 			}
 			else
 			{
 				// обработка первых граничных условий
-				MatrixBound(Ox, Oy, i, j, F);
+				MatrixBound(Ox, Oy, i, j);
 				continue;
 			}
 		}

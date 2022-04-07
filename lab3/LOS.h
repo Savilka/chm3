@@ -15,11 +15,8 @@ struct Data
 	vector<real> k;
 	// количество точек для разбиения
 	vector<real> n;
-}x, y;
-real eps = 1e-13;
-real lymbda = 1;
-real gamma = 1;
-int maxiter = 10000;
+};
+
 class lab {
 
 public:
@@ -33,43 +30,47 @@ public:
 	vector<real> n4;
 	vector<real> di;
     vector<int> mxy;
-	int* mx;
-	int* my;
+	int mx;
+	int my;
+
+	real eps = 1e-13;
+	real lymbda = 1;
+	real gamma = 1;
+	int maxiter = 10000;
+
+	Data x, y;
 
 
 
 public:
-	double FuncF(double x, double y);
-	double FuncU(double x, double y);
-	void Read(Data* area, string file, int& m);
+	real FuncF(real x, real y);
+	real FuncU(real x, real y);
+	void Read(Data& area, string file, int& m);
 
-	void MatrixIns(vector<real> Ox, vector<real>Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
-		vector<double> n4, vector<double> F);
+	void MatrixIns(vector<real> Ox, vector<real>Oy, int i, int j);
 
-	void MatrixUnIns(vector<real> Ox, vector<real> Oy, int i, int j, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
-		vector<double> n4, vector<double> F);
+	void MatrixUnIns(vector<real> Ox, vector<real> Oy, int i, int j);
 
 	void MatrixBound(vector<real> Ox, vector<real> Oy, int i, int j);
 
-	void BuildGrid(Data* S, vector<real> res);
+	void BuildGrid(Data& S, vector<real>& res);
 
-	void Iteration(vector<real> xk, vector<real> xknext, double w, int nx, int ny);
+	void Iteration(vector<real> xk, vector<real>& xknext, real w, int nx, int ny);
 
-	void Multiply(vector<real> x, int nx, int ny, int tmp);
+	void Multiply(vector<real>x, int nx, int ny, int tmp);
 
-	void Zeidel(double w, vector<real> x, int nx, int ny, int tmp);
+	void Zeidel(real w, vector<real>& x, int nx, int ny, vector<real> xk, vector<real>& xknext, int tmp);
 
-	double Norm(vector<real> vec, int n);
+	real Norm(vector <real>& vec, int n);
 
-	double Addition(int i, vector<real> x, int kx, int tmp);
+	real Addition(int i, vector<real>& x, int kx, int tmp);
 
-	void GaussSeidel(vector<real> x, vector<real> f, double w, int kx, int tmp);
+	void GaussSeidel(vector<real>& x, vector<real>& f, real w, int kx, int tmp);
 	void Output(vector<real> x0, string file);
-	void AreaUn(double a, double b, double k, int n, vector<real> res, int& q, vector<real>& mxy);
-	void BuildGridUn(Data* S, vector<real> res);
-	void CheckPoint(Data* x, Data* y, int Ox_size, int Oy_size, vector<int> check, vector<vector<real>> view,int &tmp);
-	void CheckArea(Data x, Data y,vector<real> Ox, vector<real> Oy, int c, vector<double> n1, vector<double> n2, vector<double> di, vector<double>n3,
-		vector<double> n4, vector<double> F, vector<int> check, int tmp);
+	void AreaUn(real a, real b, real k, int n, vector<real>& res, int& q);
+	void BuildGridUn(Data& S, vector<real>& res);
+	void CheckPoint(Data& x, Data& y, int Ox_size, int Oy_size, int &tmp);
+	void CheckArea(Data& x, Data& y,vector<real> Ox, vector<real> Oy, int c, int tmp);
 
 
 };
