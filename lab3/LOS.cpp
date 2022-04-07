@@ -10,12 +10,12 @@
 
 real lab::FuncF(real x, real y)
 {
-	return x + y;
+	return x*x + y*y + 4;
 }
 
 real lab::FuncU(real x, real y)
 {
-	return x + y;
+	return x * x + y * y;
 }
 // считывание из входного файла
 void lab::Read(Data& area, string file, int& m)

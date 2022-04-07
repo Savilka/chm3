@@ -43,5 +43,8 @@
     <Text Include="Oy.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="input.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>
